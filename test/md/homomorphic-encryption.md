@@ -1,0 +1,39 @@
+- What is HE?
+	- Encryption where you can compute data without decription
+- Keywords
+	- SMPC
+		- Secure Multi Party Computation
+	- TEE
+		- Trusted Execution Enviroment
+	- PSI
+		- Private Set Intersection
+			- Scenario where one user holds private information
+- Information about HE
+	- Fast FAQ
+	  collapsed:: true
+		- Data enter / stay in / leave untrusted networks encrypted
+		- Operations mixing ciphertext and plaintest reveal the secret?
+			- No, the output is ciphertext
+		- Is decryption performed during computation?
+			- No, computation is performed without decryption
+	- PHE vs SWHE vs FHE
+		- Partially Homomorphic Encryption are schemes with only one operation enabled. Either sum or multiplication.
+	- Popular schemes
+	  collapsed:: true
+		- TFHE
+		- BGV, BFV
+		- CKKS (not full aproximate arithmetic)
+	- Stages in HE
+	  collapsed:: true
+		- Setup
+			- Scheme
+			- Security parameters
+			- Functionality parameters
+		- Key generation
+			- [Secret key, public key, relinearization key, Galois keys ]
+		- Encryption
+			- A number or a vector of numbers -> ciphertext (2 polynomials)
+		- Evaluation
+		- Decryption
+	-
+	-

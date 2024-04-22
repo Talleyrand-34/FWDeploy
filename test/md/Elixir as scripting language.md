@@ -1,0 +1,20 @@
+- The Problem
+	- Personal story
+		- In my short experience as linux administrator I went through all kind of experiences in my path towards Linux mastery. Because I always wanted to learn the faster way possible I destroyed my system and started from scratch whenever possible. Due to this nature I always looked for ways to rush my previous state in the less time possible.
+		- My history could be resumed in "ubuntu vm (<72h) -> manjaro (1m) -> parrotOS (1m) -> fedora (1y) -> slackware (1y)  -> parrotOS (1m) -> fedora (1y) -> Nixos (9m)", I always believed that the obstacle is the way, that is why i always chose the hard path rather than the easy path. On the other hand knowledge reduce the amount of work needed to reach the same objectives as in the past. When I started i couldn't sleep thinking on how to compile and configure packages manually,   rigth now I cannot sleep because i don't know how to configure a 7-layer firewall or how to implement CKKS algorithm in rust. But this night I couldn't sleep because i was thinking which would be an appropiate scripting language. Obviously bash is effective but lacks on "new generation" characteristics, for example package manager, test support... One example of this is one script i had to do btrfs volumes backups in which i wanted to do logs in json; the resources needed to make that bash export logs on json made the "project" unviable.
+		- Whenever i needed something more powerful than bash i used raku/perl6 but this night i found something more interesting
+	- Which requirements needs a modern scripting language
+		- Typing => ? // Does not matter static or dynamic
+		- Integrated test => True // For me tests are important
+		- Integrated docs => True // For me documentation is important
+	- At least this are the main things that I see bash lacks of. When i need to rewrite an old script, or even a worse case, some script from 14 years ago from some unknown coder this are the things i want to start modifying files.
+- The possible solutions
+	- Python: I don't like python
+	- Go: I didn't explore this option
+	- Rust: It was my first try. to build terminal apps is cool but not for scripting
+- The solution
+	- Elixir: I always likes elixir. There is ceratin glamour in erlang and elixir that other fail to achieve. First is the functional paradigm of elixir and second is the concurrency. Moreover the pattern matching lets you solve things in an easy and elegant way, the same solution in other languages would add complexity to the program.
+		- Integrated docs lets you know what did you wanted to do when you where writing your code
+		- Integrated test lets you modify your script at the same time that ensures you that you are being consistent with the old behaviour
+- Example
+    -[My elixir scripting example](https://git.talleyrand.dev/transform)
