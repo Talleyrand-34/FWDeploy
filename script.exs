@@ -34,20 +34,33 @@ defmodule DeployMd do
   Process Markdown files in a given directory and write HTML files.
   """
   def process_md_files(input_path, output_path) do
-    IO.inspect(input_path)
-    md_files = File.ls!(input_path) |> Enum.filter(&(Path.extname(&1) == ".md"))
+    md_files =
+      File.ls!(input_path)
+      |> Enum.filter(&(Path.extname(&1) == ".md"))
 
     if Enum.empty?(md_files) do
       IO.puts("No markdown files found in the directory: #{input_path}")
       System.halt(1)
     else
-      Enum.each(md_files, fn file ->
+      # Enum.each(md_files, fn file ->
+      #     IO.puts("Processing #{file}")
+      #     {_, transformed_html} = md_to_html(Path.join([input_path, file]))
+      #     write_path = Path.join([output_path, GenerateDefname.generate_defname(file) <> ".html"])
+      #     File.write!(write_path, transformed_html)
+      #     IO.puts("Processed and copied #{file} to #{write_path}")
+      #   end)
+      Task.async_stream(md_files, fn file ->
         IO.puts("Processing #{file}")
         {_, transformed_html} = md_to_html(Path.join([input_path, file]))
         write_path = Path.join([output_path, GenerateDefname.generate_defname(file) <> ".html"])
         File.write!(write_path, transformed_html)
         IO.puts("Processed and copied #{file} to #{write_path}")
       end)
+
+      # Await all tasks with a timeout of 10 seconds
+      |> Stream.run()
+
+      # Task.await_many(tasks)
     end
   end
 end
