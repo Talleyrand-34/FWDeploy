@@ -28,7 +28,10 @@ defmodule AllTests do
     end
 
     test "handles filenames with spaces" do
-      assert GenerateDefname.generate_defname("My File.md") == "my-file"
+      assert GenerateDefname.generate_defname("My File.md") == "my_file"
+    end
+    test "handles -" do
+      assert GenerateDefname.generate_defname("My-File.md") == "my_file"
     end
 
     test "handles uppercase filenames" do

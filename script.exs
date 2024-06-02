@@ -81,7 +81,8 @@ defmodule GenerateDefname do
       file
       |> String.replace_suffix(".md", "")
       |> String.downcase()
-      |> String.replace(" ", "-")
+      |> String.replace(" ", "_")
+      |> String.replace("-", "_")
 
     defname
   end
