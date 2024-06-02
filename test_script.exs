@@ -50,7 +50,8 @@ defmodule AllTests do
   describe "TransformLinks" do
     use ExUnit.Case
 
-    import TransformLinks, only: [transform_links: 1, generate_defname: 1]
+    import TransformLinks, only: [transform_links: 1]
+    import GenerateDefname, only: [generate_defname: 1]
 
     test "transforms links correctly" do
       input = "This is a [[link1]] and this is [[link2]]."
@@ -65,7 +66,7 @@ defmodule AllTests do
 
     test "generates definition name correctly" do
       file = "My File.md"
-      expected_defname = "my-file"
+      expected_defname = "my_file"
 
       actual_defname = generate_defname(file)
 

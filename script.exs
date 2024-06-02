@@ -6,6 +6,9 @@ if System.get_env("DEPS_ONLY") == "true" do
   Process.sleep(:infinity)
 end
 
+
+
+# --------------------------------------------------------------------------------
 defmodule DeployMd do
   @moduledoc """
   Module to deploy Markdown files.
@@ -65,6 +68,7 @@ defmodule DeployMd do
   end
 end
 
+# --------------------------------------------------------------------------------
 defmodule GenerateDefname do
   @moduledoc """
   Module to generate defname from a filename.
@@ -88,6 +92,9 @@ defmodule GenerateDefname do
   end
 end
 
+# --------------------------------------------------------------------------------
+# Transform md references to html links
+# --------------------------------------------------------------------------------
 defmodule TransformLinks do
   @moduledoc """
   Module to transform links in a file.
@@ -102,27 +109,17 @@ defmodule TransformLinks do
       ~r/\[\[(.*?)\]\]/,
       input,
       fn _, match, _ ->
-        "<a href=#{generate_defname(match)}.html>#{match} </a>"
+        "<a href=#{GenerateDefname.generate_defname(match)}.html>#{match} </a>"
       end,
       global: true
     )
   end
 
-  @doc """
-  Generates a definition name from a file name.
-  """
-  def generate_defname(file) do
-    defname =
-      file
-      |> Path.basename()
-      |> String.replace_suffix(".md", "")
-      |> String.downcase()
-      |> String.replace(" ", "-")
-
-    defname
-  end
 end
 
+# --------------------------------------------------------------------------------
+# Main
+# --------------------------------------------------------------------------------
 defmodule Main do
   @args [
     help: :boolean,
