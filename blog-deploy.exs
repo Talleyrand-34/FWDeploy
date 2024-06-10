@@ -5,10 +5,74 @@ if System.get_env("DEPS_ONLY") == "true" do
   System.halt(0)
   Process.sleep(:infinity)
 end
+defmodule OverloadHTML do
+  @moduledoc """
+  Add HTML features.
+  """
 
+  # Function to process flagged content and transform it into HTML (details/summary)
+  def process_flagged_content(flagged_content) do
+    # Split the flagged content into lines
+    lines = String.split(flagged_content, "\n")
 
+    # Transform lines into <details> and <summary> tags
+    transformed_lines =
+      lines
+      |> Enum.map(fn line ->
+        cond do
+          String.starts_with?(line, "- ### ") -> "<h3>" <> String.trim_leading(line, "- ### ") <> "</h3>"
+          String.starts_with?(line, "  - ") -> 
+            item = String.trim_leading(line, "  - ")
+            "<details>\n<summary>#{item}</summary>"
+          String.starts_with?(line, "    - ") -> 
+            item = String.trim_leading(line, "    - ")
+            "#{item}\n</details>"
+          true -> line
+        end
+      end)
 
-# --------------------------------------------------------------------------------
+    # Join the transformed lines back into a single string
+    transformed_html = Enum.join(transformed_lines, "\n")
+
+    # Wrap the transformed HTML in a <div> with the desired styles
+    """
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+    #{transformed_html}
+    </div>
+    """
+  end
+
+  # Function to embed the transformed content back into the original content
+  def embed_transformed_content(original_content) do
+    # Define the flag to identify the section
+    flag_start = "#!#!#!"
+    flag_end = "#!#!#!"
+
+    # Split the content using the flag
+    split_content = String.split(original_content, ~r/#{flag_start}|#{flag_end}/)
+
+    # Check if the split content has exactly three parts
+    case split_content do
+      [before_flag, flagged_content, after_flag] ->
+        # Process flagged content manually
+        transformed_html_flagged_content = process_flagged_content(flagged_content)
+
+        # Process before and after content with Earmark
+        {:ok, before_html, _} = Earmark.as_html(before_flag)
+        {:ok, after_html, _} = Earmark.as_html(after_flag)
+
+        # Embed the transformed content back into the original content
+        final_content = before_html <> transformed_html_flagged_content <> after_html
+        final_content
+
+      _ ->
+        # If the flag is not present, process the entire content with Earmark
+        {:ok, html_content, _} = Earmark.as_html(original_content)
+        html_content
+    end
+  end
+end
+
 defmodule DeployMd do
   @moduledoc """
   Module to deploy Markdown files.
@@ -20,11 +84,11 @@ defmodule DeployMd do
   def md_to_html(file) do
     case File.read(file) do
       {:ok, content} ->
-        # Convert markdown to HTML using Earmark
-        {:ok, html_content, _} = Earmark.as_html(content)
+        # Embed the transformed content back into the original content
+        transformed_content = OverloadHTML.embed_transformed_content(content)
 
         # Transform links in the HTML content
-        transformed_html = TransformLinks.transform_links(html_content)
+        transformed_html = TransformLinks.transform_links(transformed_content)
 
         {:ok, transformed_html}
 
@@ -45,28 +109,20 @@ defmodule DeployMd do
       IO.puts("No markdown files found in the directory: #{input_path}")
       System.halt(1)
     else
-      # Enum.each(md_files, fn file ->
-      #     IO.puts("Processing #{file}")
-      #     {_, transformed_html} = md_to_html(Path.join([input_path, file]))
-      #     write_path = Path.join([output_path, GenerateDefname.generate_defname(file) <> ".html"])
-      #     File.write!(write_path, transformed_html)
-      #     IO.puts("Processed and copied #{file} to #{write_path}")
-      #   end)
       Task.async_stream(md_files, fn file ->
+      # Enum.each(md_files, fn file ->
+
         IO.puts("Processing #{file}")
         {_, transformed_html} = md_to_html(Path.join([input_path, file]))
         write_path = Path.join([output_path, GenerateDefname.generate_defname(file) <> ".html"])
         File.write!(write_path, transformed_html)
         IO.puts("Processed and copied #{file} to #{write_path}")
       end)
-
-      # Await all tasks with a timeout of 10 seconds
       |> Stream.run()
-
-      # Task.await_many(tasks)
     end
   end
 end
+
 
 # --------------------------------------------------------------------------------
 defmodule GenerateDefname do
