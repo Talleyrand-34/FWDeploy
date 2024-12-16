@@ -5,8 +5,9 @@ ExUnit.start()
 
 defmodule AllTests do
   use ExUnit.Case
+  alias PdfProcessor
+  alias GenerateDefname
 
-  # describe "DeployMd" do
   describe "process_md_file/1" do
     test "transforms Markdown to HTML" do
       markdown_path = "test/md/index.md"
@@ -19,9 +20,7 @@ defmodule AllTests do
     end
   end
 
-  # end
 
-  # describe "GenerateDefname" do
   describe "generate_defname/1" do
     test "generates defname from filename" do
       assert GenerateDefname.generate_defname("README.md") == "readme"
@@ -73,4 +72,63 @@ defmodule AllTests do
       assert actual_defname == expected_defname
     end
   end
+    describe "PdfProcessor" do
+
+    test "processes PDF files and generates corresponding HTML" do#, %{input_path: input_path, output_path: output_path} do
+    input_path= "test/md/"
+    output_path= "test/html/"
+      # Create a sample PDF file in the input directory for testing
+      # sample_pdf = Path.join(input_path, "intro-fisica-cuantica.pdf")
+      # File.write!(sample_pdf, "Sample PDF content")
+
+      # Call the function to process PDF files
+      PdfProcessor.process_pdf_files(input_path, output_path)
+
+      # Check if the HTML file was created correctly
+      expected_html_file = Path.join(output_path, "intro_fisica_cuantica.html")
+      assert File.exists?(expected_html_file)
+
+      # Read the generated HTML content for verification
+      generated_html_content = File.read!(expected_html_file)
+      expected_html_content = """
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>PDF Viewer</title>
+          <style>
+              body, html {
+                  margin: 0;
+                  padding: 0;
+                  height: 100%; /* Full height for body and html */
+              }
+              .pdfviewer {
+                  width: 100%; /* Full width */
+                  height: 100vh; /* Full viewport height */
+                  border: none; /* Remove border */
+              }
+          </style>
+      </head>
+      <body>
+          <object data="intro_fisica_cuantica.pdf" type="application/pdf" width="100%" height="600px" class="pdfviewer">
+              <p>Your browser does not support PDFs. <a href="intro_fisica_cuantica.pdf">Download the PDF</a>.</p>
+          </object>
+      </body>
+    </html>
+      """
+
+      assert generated_html_content == expected_html_content
+
+    end
+
+    # test "handles case with no PDF files", %{input_path: input_path, output_path: output_path} do
+    #   # Call the function when there are no PDFs to process
+    #   assert capture_io(fn ->
+    #     PdfProcessor.process_pdf_files(input_path, output_path)
+    #   end) =~ "No PDF files found in the directory:"
+    # end
+
+  end
 end
+

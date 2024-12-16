@@ -6,68 +6,66 @@ if System.get_env("DEPS_ONLY") == "true" do
   Process.sleep(:infinity)
 end
 
-defmodule EmbeddedFiles do
-  @moduledoc """
-  Module for handling embedded files and creating HTML.
-  """
+defmodule PdfProcessor do
+  def process_pdf_files(input_path, output_path) do
+    pdf_files =
+      File.ls!(input_path)
+      |> Enum.filter(&(Path.extname(&1) == ".pdf"))
 
-  @doc """
-  Creates an HTML file and copies necessary files to the destination.
-  """
-  def create_html_and_copy_files(input_path, output_path) do
-    # Ensure the output directory exists
-    File.mkdir_p!(output_path)
+    if Enum.empty?(pdf_files) do
+      IO.puts("No PDF files found in the directory: #{input_path}")
+    else
+      Task.async_stream(pdf_files, fn file ->
+        # Process PDF
+        IO.puts("Processing #{file}")
 
-    # Create the HTML content
-    html_content = """
+        # Call pdf_to_html to generate HTML for the PDF
+        transformed_html = pdf_to_html(GenerateDefname.generate_defname(file))
+
+        # Define write path for the generated HTML file
+        write_path_md = Path.join([output_path, GenerateDefname.generate_defname(file) <> ".html"])
+
+        # Write the generated HTML to the output path
+        File.write!(write_path_md, transformed_html)
+        
+        # Inform about successful processing
+        IO.puts("Processed and copied #{file} to #{write_path_md}")
+      end)
+      |> Stream.run()
+    end
+  end
+
+  def pdf_to_html(file) do
+    # Generate an HTML string that includes an iframe for the PDF
+    pdf_file_name = Path.basename(file)  # Get just the file name (e.g., "document.pdf")
+    
+    """
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Embedded Files</title>
+        <title>PDF Viewer</title>
+        <style>
+            body, html {
+                margin: 0;
+                padding: 0;
+                height: 100%; /* Full height for body and html */
+            }
+            .pdfviewer {
+                width: 100%; /* Full width */
+                height: 100vh; /* Full viewport height */
+                border: none; /* Remove border */
+            }
+        </style>
     </head>
     <body>
-        <h1>Embedded Files</h1>
-        <p>This page contains embedded files.</p>
+        <object data="#{pdf_file_name}.pdf" type="application/pdf" width="100%" height="600px" class="pdfviewer">
+            <p>Your browser does not support PDFs. <a href="#{pdf_file_name}.pdf">Download the PDF</a>.</p>
+        </object>
     </body>
     </html>
     """
-
-    # Write the HTML content to a file
-    html_file_path = Path.join(output_path, "index.html")
-    File.write!(html_file_path, html_content)
-    IO.puts("Created HTML file at #{html_file_path}")
-
-    # Copy necessary files (e.g., PDFs, images) from input_path to output_path
-    copy_files(input_path, output_path)
-  end
-
-  @doc """
-  Copies necessary files from input_path to output_path.
-  """
-  defp copy_files(input_path, output_path) do
-    # List all files in the input directory
-    files_to_copy =
-      File.ls!(input_path)
-      |> Enum.filter(&valid_file_extension?/1)
-
-    # Copy each valid file to the output directory
-    Enum.each(files_to_copy, fn file ->
-      source_file = Path.join(input_path, file)
-      destination_file = Path.join(output_path, file)
-
-      File.cp!(source_file, destination_file)
-      IO.puts("Copied #{file} to #{destination_file}")
-    end)
-  end
-
-  @doc """
-  Checks if a file has a valid extension for copying.
-  """
-  defp valid_file_extension?(file) do
-    ext = Path.extname(file)
-    ext in [".pdf", ".jpg", ".png", ".gif"] # Add more extensions as needed
   end
 end
 defmodule OverloadHTML do
@@ -183,9 +181,6 @@ defmodule DeployMd do
         IO.puts("Processed and copied #{file} to #{write_path}")
       end)
       |> Stream.run()
-      # Process file embeding
-      EmbeddedFiles.create_html_and_copy_files(input_path, output_path)
-
     end
   end
 end
@@ -207,6 +202,7 @@ defmodule GenerateDefname do
     defname =
       file
       |> String.replace_suffix(".md", "")
+      |> String.replace_suffix(".pdf", "")
       |> String.downcase()
       |> String.replace(" ", "_")
       |> String.replace("-", "_")
@@ -267,6 +263,7 @@ defmodule Main do
     IO.inspect(output_path)
 
     DeployMd.process_md_files(input_path, output_path)
+    PdfProcessor.process_pdf_files(input_path,output_path)
   end
 end
 
