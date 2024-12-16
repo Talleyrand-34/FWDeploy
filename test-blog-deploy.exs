@@ -1,5 +1,5 @@
 # Load script.exs
-Code.eval_file("script.exs")
+Code.eval_file("blog-deploy.exs")
 
 ExUnit.start()
 

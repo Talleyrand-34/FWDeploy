@@ -5,6 +5,71 @@ if System.get_env("DEPS_ONLY") == "true" do
   System.halt(0)
   Process.sleep(:infinity)
 end
+
+defmodule EmbeddedFiles do
+  @moduledoc """
+  Module for handling embedded files and creating HTML.
+  """
+
+  @doc """
+  Creates an HTML file and copies necessary files to the destination.
+  """
+  def create_html_and_copy_files(input_path, output_path) do
+    # Ensure the output directory exists
+    File.mkdir_p!(output_path)
+
+    # Create the HTML content
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Embedded Files</title>
+    </head>
+    <body>
+        <h1>Embedded Files</h1>
+        <p>This page contains embedded files.</p>
+    </body>
+    </html>
+    """
+
+    # Write the HTML content to a file
+    html_file_path = Path.join(output_path, "index.html")
+    File.write!(html_file_path, html_content)
+    IO.puts("Created HTML file at #{html_file_path}")
+
+    # Copy necessary files (e.g., PDFs, images) from input_path to output_path
+    copy_files(input_path, output_path)
+  end
+
+  @doc """
+  Copies necessary files from input_path to output_path.
+  """
+  defp copy_files(input_path, output_path) do
+    # List all files in the input directory
+    files_to_copy =
+      File.ls!(input_path)
+      |> Enum.filter(&valid_file_extension?/1)
+
+    # Copy each valid file to the output directory
+    Enum.each(files_to_copy, fn file ->
+      source_file = Path.join(input_path, file)
+      destination_file = Path.join(output_path, file)
+
+      File.cp!(source_file, destination_file)
+      IO.puts("Copied #{file} to #{destination_file}")
+    end)
+  end
+
+  @doc """
+  Checks if a file has a valid extension for copying.
+  """
+  defp valid_file_extension?(file) do
+    ext = Path.extname(file)
+    ext in [".pdf", ".jpg", ".png", ".gif"] # Add more extensions as needed
+  end
+end
 defmodule OverloadHTML do
   @moduledoc """
   Add HTML features.
@@ -110,8 +175,7 @@ defmodule DeployMd do
       System.halt(1)
     else
       Task.async_stream(md_files, fn file ->
-      # Enum.each(md_files, fn file ->
-
+        #Process MD
         IO.puts("Processing #{file}")
         {_, transformed_html} = md_to_html(Path.join([input_path, file]))
         write_path = Path.join([output_path, GenerateDefname.generate_defname(file) <> ".html"])
@@ -119,6 +183,9 @@ defmodule DeployMd do
         IO.puts("Processed and copied #{file} to #{write_path}")
       end)
       |> Stream.run()
+      # Process file embeding
+      EmbeddedFiles.create_html_and_copy_files(input_path, output_path)
+
     end
   end
 end
