@@ -8,6 +8,9 @@ end
 
 defmodule PdfProcessor do
   def process_pdf_files(input_path, output_path) do
+    # Ensure the output directory exists
+    File.mkdir_p!(output_path)
+
     pdf_files =
       File.ls!(input_path)
       |> Enum.filter(&(Path.extname(&1) == ".pdf"))
@@ -16,20 +19,25 @@ defmodule PdfProcessor do
       IO.puts("No PDF files found in the directory: #{input_path}")
     else
       Task.async_stream(pdf_files, fn file ->
+        # Construct full paths for input and output
+        input_file_path = Path.join(input_path, file)
+        input_curated_file_path = Path.join(input_path, GenerateDefname.generate_defname(file) <> ".pdf")
+        output_file_path = Path.join(output_path, GenerateDefname.generate_defname(file) <> ".html")
+
         # Process PDF
         IO.puts("Processing #{file}")
 
         # Call pdf_to_html to generate HTML for the PDF
-        transformed_html = pdf_to_html(GenerateDefname.generate_defname(file))
-
-        # Define write path for the generated HTML file
-        write_path_md = Path.join([output_path, GenerateDefname.generate_defname(file) <> ".html"])
+        transformed_html = pdf_to_html(input_curated_file_path)
 
         # Write the generated HTML to the output path
-        File.write!(write_path_md, transformed_html)
-        
+        File.write!(output_file_path, transformed_html)
+
+        # Copy the original PDF file to the output path
+        File.cp!(input_file_path, Path.join(output_path, file))
+
         # Inform about successful processing
-        IO.puts("Processed and copied #{file} to #{write_path_md}")
+        IO.puts("Processed and copied #{file} to #{output_file_path}")
       end)
       |> Stream.run()
     end
@@ -60,8 +68,8 @@ defmodule PdfProcessor do
         </style>
     </head>
     <body>
-        <object data="#{pdf_file_name}.pdf" type="application/pdf" width="100%" height="600px" class="pdfviewer">
-            <p>Your browser does not support PDFs. <a href="#{pdf_file_name}.pdf">Download the PDF</a>.</p>
+        <object data="#{pdf_file_name}" type="application/pdf" width="100%" height="600px" class="pdfviewer">
+            <p>Your browser does not support PDFs. <a href="#{pdf_file_name}">Download the PDF</a>.</p>
         </object>
     </body>
     </html>

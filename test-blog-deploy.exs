@@ -75,8 +75,8 @@ defmodule AllTests do
     describe "PdfProcessor" do
 
     test "processes PDF files and generates corresponding HTML" do#, %{input_path: input_path, output_path: output_path} do
-    input_path= "test/md/"
-    output_path= "test/html/"
+      input_path= "test/md/"
+      output_path= "test/html/"
       # Create a sample PDF file in the input directory for testing
       # sample_pdf = Path.join(input_path, "intro-fisica-cuantica.pdf")
       # File.write!(sample_pdf, "Sample PDF content")
@@ -115,7 +115,7 @@ defmodule AllTests do
               <p>Your browser does not support PDFs. <a href="intro_fisica_cuantica.pdf">Download the PDF</a>.</p>
           </object>
       </body>
-    </html>
+      </html>
       """
 
       assert generated_html_content == expected_html_content
